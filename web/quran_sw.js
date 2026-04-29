@@ -7,12 +7,12 @@ const PDF_ASSET_PATH = 'assets/assets/quran.pdf';
 
 // Core app shell files to pre-cache
 const APP_SHELL_FILES = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/favicon.png',
-  '/icons/Icon-192.png',
-  '/icons/Icon-512.png',
+  './',
+  './index.html',
+  './manifest.json',
+  './favicon.png',
+  './icons/Icon-192.png',
+  './icons/Icon-512.png',
 ];
 
 // Install event: Pre-cache the app shell
@@ -118,7 +118,7 @@ self.addEventListener('fetch', (event) => {
       }).catch(() => {
         // Offline fallback for navigation requests
         if (event.request.mode === 'navigate') {
-          return caches.match('/index.html');
+          return caches.match('./index.html');
         }
         return new Response('Offline', { status: 503, statusText: 'Offline' });
       });
