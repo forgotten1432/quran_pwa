@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+  <!--
+    If you are serving your web app in a path other than the root, change the
+    href value below to reflect the base path you are serving from.
+
+    The path provided below has to start and end with a slash "/" in order for
+    it to work correctly.
+
+    This is a placeholder for base href that will be replaced by the value of
+    the `--base-href` argument provided to `flutter build`.
+  -->
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <!-- iOS optimized viewport: disable user zoom to prevent accidental double-tap zoom -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="description" content="تطبيق القرآن الكريم - مصحف المدينة المنورة الإلكتروني - يعمل بدون إنترنت">
+  <meta name="theme-color" content="#1B5E20">
+
+  <!-- iOS PWA meta tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="القرآن الكريم">
+  <meta name="mobile-web-app-capable" content="yes">
+
+  <!-- iOS touch icons (multiple sizes for different devices) -->
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="icons/Icon-192.png">
+  <link rel="apple-touch-icon" sizes="167x167" href="icons/Icon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/Icon-192.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="icons/Icon-512.png">
+
+  <!-- iOS splash screens for common devices -->
+  <!-- iPhone 14 Pro Max / 15 Plus (430x932) -->
+  <link rel="apple-touch-startup-image"
+        href="icons/Icon-512.png"
+        media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)">
+  <!-- iPhone 14 Pro / 15 (393x852) -->
+  <link rel="apple-touch-startup-image"
+        href="icons/Icon-512.png"
+        media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3)">
+  <!-- iPhone 13/14 / 15 (390x844) -->
+  <link rel="apple-touch-startup-image"
+        href="icons/Icon-512.png"
+        media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)">
+  <!-- iPhone SE 3 (375x667) -->
+  <link rel="apple-touch-startup-image"
+        href="icons/Icon-512.png"
+        media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>القرآن الكريم</title>
+  <link rel="manifest" href="manifest.json">
+
+  <style>
+    /* ===== iOS-Optimized Global Styles ===== */
+
+    /* Prevent iOS rubber-band bouncing and text selection */
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100%;
+      width: 100%;
+      position: fixed;
+      /* Prevent iOS text selection and callouts */
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+      /* Prevent iOS tap highlight */
+      -webkit-tap-highlight-color: transparent;
+      /* Smooth scrolling */
+      -webkit-overflow-scrolling: touch;
+      /* Safe area support for notch/home indicator */
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+
+    body {
+      background-color: #121212;
+      /* Prevent pull-to-refresh on iOS */
+      overscroll-behavior: none;
+      /* Prevent iOS context menu */
+      touch-action: manipulation;
+    }
+
+    /* Prevent iOS double-tap zoom on all elements */
+    * {
+      touch-action: manipulation;
+    }
+
+    /* ===== Loading Screen ===== */
+    #loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #0a3d0a 0%, #1B5E20 50%, #2E7D32 100%);
+      z-index: 9999;
+      transition: opacity 0.5s ease;
+      /* Safe area padding for notched devices */
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    #loading-screen .title {
+      font-family: -apple-system, 'Arial', 'Amiri', serif;
+      font-size: 2.5rem;
+      color: #D4A853;
+      margin-bottom: 8px;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    #loading-screen .subtitle {
+      font-family: -apple-system, 'Arial', sans-serif;
+      font-size: 1rem;
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 32px;
+    }
+
+    .loading-spinner {
+      width: 48px;
+      height: 48px;
+      border: 3px solid rgba(212, 168, 83, 0.3);
+      border-top-color: #D4A853;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    #loading-progress {
+      margin-top: 20px;
+      font-family: -apple-system, 'Arial', sans-serif;
+      font-size: 0.875rem;
+      color: rgba(255,255,255,0.6);
+    }
+  </style>
+</head>
+<body>
+  <!-- Beautiful loading screen while Flutter initializes -->
+  <div id="loading-screen">
+    <div class="title">القرآن الكريم</div>
+    <div class="subtitle">مصحف المدينة المنورة</div>
+    <div class="loading-spinner"></div>
+    <div id="loading-progress">جاري التحميل...</div>
+  </div>
+
+  <script>
+    // Remove loading screen once Flutter is ready
+    window.addEventListener('flutter-first-frame', function() {
+      const loader = document.getElementById('loading-screen');
+      if (loader) {
+        loader.style.opacity = '0';
+        setTimeout(() => loader.remove(), 500);
+      }
+    });
+
+    // iOS-specific: Prevent default touch behaviors that interfere with the app
+    document.addEventListener('touchmove', function(e) {
+      // Only prevent default at the document level to avoid rubber-banding
+      if (e.target === document.body || e.target === document.documentElement) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+    // Prevent iOS Safari pull-to-refresh
+    document.addEventListener('gesturestart', function(e) {
+      e.preventDefault();
+    });
+
+    // iOS standalone mode: handle navigation properly
+    if (window.navigator.standalone) {
+      document.addEventListener('click', function(e) {
+        var target = e.target;
+        while (target && target.tagName !== 'A') {
+          target = target.parentElement;
+        }
+        if (target && target.href && target.origin === window.location.origin) {
+          e.preventDefault();
+          window.location = target.href;
+        }
+      });
+    }
+
+    // Fix iOS 100vh issue
+    function setVH() {
+      let vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    }
+    setVH();
+    window.addEventListener('resize', setVH);
+  </script>
+
+  <script>
+    // Register custom Quran service worker for offline PDF caching
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/quran_sw.js', { scope: '/' })
+          .then(function(reg) {
+            console.log('Quran SW registered with scope:', reg.scope);
+          })
+          .catch(function(err) {
+            console.warn('Quran SW registration failed:', err);
+          });
+      });
+    }
+  </script>
+
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>
