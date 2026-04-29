@@ -199,10 +199,10 @@ class _QuranReaderScreenState extends State<QuranReaderScreen>
       );
     }
 
-    final realPageNumber = virtualPageNumber > 101 ? virtualPageNumber - 1 : virtualPageNumber;
+    final realPageNumber = virtualPageNumber;
     
     // Bounds check
-    if (realPageNumber < 1 || realPageNumber > 607) {
+    if (realPageNumber < 1 || realPageNumber > 608) {
       return const SizedBox();
     }
 
