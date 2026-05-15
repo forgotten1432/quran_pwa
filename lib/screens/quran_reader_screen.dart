@@ -70,7 +70,7 @@ class QuranReaderScreen extends StatefulWidget {
 class _QuranReaderScreenState extends State<QuranReaderScreen>
     with TickerProviderStateMixin {
   int _currentPage = 1;
-  int _totalPages = 608; // 607 original + 1 blank page for missing page 101
+  int _totalPages = 608;
   bool _isFullscreen = false;
   bool _showControls = true;
   Timer? _hideTimer;
@@ -185,26 +185,13 @@ class _QuranReaderScreenState extends State<QuranReaderScreen>
     return name;
   }
 
-  // Returns an Image.network for the page or a blank Container if it's the missing page 101
   Widget _buildImagePage(int virtualPageNumber, ThemeData theme) {
-    if (virtualPageNumber == 101) {
-      return Container(
-        color: widget.isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
-        child: const Center(
-          child: Text(
-            'Eksik Sayfa',
-            style: TextStyle(color: Colors.grey, fontSize: 18),
-          ),
-        ),
-      );
+    // Bounds check
+    if (virtualPageNumber < 1 || virtualPageNumber > 608) {
+      return const SizedBox();
     }
 
     final realPageNumber = virtualPageNumber;
-    
-    // Bounds check
-    if (realPageNumber < 1 || realPageNumber > 608) {
-      return const SizedBox();
-    }
 
     final imageUrl = 'pages/page-${realPageNumber.toString().padLeft(3, '0')}.jpg';
 
@@ -258,12 +245,10 @@ class _QuranReaderScreenState extends State<QuranReaderScreen>
           : _showControls
               ? _buildAppBar(theme, safePadding)
               : null,
-      drawer: _isFullscreen
-          ? null
-          : QuranNavigationDrawer(
-              onPageSelected: _goToPage,
-              currentPage: _currentPage,
-            ),
+      drawer: QuranNavigationDrawer(
+        onPageSelected: _goToPage,
+        currentPage: _currentPage,
+      ),
       body: Stack(
         children: [
           GestureDetector(
@@ -357,8 +342,8 @@ class _QuranReaderScreenState extends State<QuranReaderScreen>
               ),
             ),
 
-          // Fullscreen floating menu button with safe area
-          if (_isFullscreen && _showControls)
+          // Floating top-right buttons (fullscreen controls + non-fullscreen extras)
+          if (_showControls)
             Positioned(
               top: safePadding.top + 8,
               right: 8,
@@ -367,18 +352,39 @@ class _QuranReaderScreenState extends State<QuranReaderScreen>
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _buildFloatingButton(
-                      icon: Icons.fullscreen_exit,
-                      onTap: _toggleFullscreen,
-                      theme: theme,
-                    ),
-                    const SizedBox(width: 8),
-                    _buildFloatingButton(
-                      icon: Icons.search,
-                      onTap: _showGoToPageDialog,
-                      theme: theme,
-                    ),
+                    if (_isFullscreen) ...
+                      [
+                        _buildFloatingButton(
+                          icon: Icons.fullscreen_exit,
+                          onTap: _toggleFullscreen,
+                          theme: theme,
+                        ),
+                        const SizedBox(width: 8),
+                        _buildFloatingButton(
+                          icon: Icons.search,
+                          onTap: _showGoToPageDialog,
+                          theme: theme,
+                        ),
+                      ],
                   ],
+                ),
+              ),
+            ),
+
+          // Floating hamburger menu button (top-left) — always accessible on iOS
+          // iOS PWA blocks left-edge swipe, so this is the reliable way to open drawer
+          if (_showControls)
+            Positioned(
+              top: safePadding.top + 8,
+              left: 8,
+              child: FadeTransition(
+                opacity: _fadeController,
+                child: Builder(
+                  builder: (ctx) => _buildFloatingButton(
+                    icon: Icons.menu,
+                    onTap: () => Scaffold.of(ctx).openDrawer(),
+                    theme: theme,
+                  ),
                 ),
               ),
             ),
