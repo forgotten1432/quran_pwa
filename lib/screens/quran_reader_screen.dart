@@ -75,7 +75,7 @@ class _QuranReaderScreenState extends State<QuranReaderScreen>
   bool _showControls = true;
   Timer? _hideTimer;
   late AnimationController _fadeController;
-  
+
   PageController? _pageController;
   bool? _lastIsPortrait;
 
@@ -84,7 +84,8 @@ class _QuranReaderScreenState extends State<QuranReaderScreen>
     super.initState();
     // Clear image cache and limit it to avoid high RAM usage
     PaintingBinding.instance.imageCache.maximumSize = 10;
-    PaintingBinding.instance.imageCache.maximumSizeBytes = 20 * 1024 * 1024; // 20 MB
+    PaintingBinding.instance.imageCache.maximumSizeBytes =
+        20 * 1024 * 1024; // 20 MB
 
     _currentPage = widget.prefsService.getLastPage();
     _fadeController = AnimationController(
@@ -101,11 +102,13 @@ class _QuranReaderScreenState extends State<QuranReaderScreen>
       DeviceOrientation.landscapeRight,
     ]);
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.light,
-      systemNavigationBarColor: Colors.transparent,
-    ));
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.transparent,
+      ),
+    );
   }
 
   @override
@@ -140,7 +143,7 @@ class _QuranReaderScreenState extends State<QuranReaderScreen>
     if (page >= 1 && page <= _totalPages) {
       setState(() => _currentPage = page);
       widget.prefsService.saveLastPage(page);
-      
+
       if (_pageController?.hasClients == true && _lastIsPortrait != null) {
         final targetIndex = _lastIsPortrait! ? page - 1 : (page - 1) ~/ 2;
         _pageController!.jumpToPage(targetIndex);
@@ -164,10 +167,8 @@ class _QuranReaderScreenState extends State<QuranReaderScreen>
   Future<void> _showGoToPageDialog() async {
     final page = await showDialog<int>(
       context: context,
-      builder: (ctx) => GoToPageDialog(
-        currentPage: _currentPage,
-        totalPages: _totalPages,
-      ),
+      builder: (ctx) =>
+          GoToPageDialog(currentPage: _currentPage, totalPages: _totalPages),
     );
     if (page != null) {
       _goToPage(page);
@@ -193,7 +194,8 @@ class _QuranReaderScreenState extends State<QuranReaderScreen>
 
     final realPageNumber = virtualPageNumber;
 
-    final imageUrl = 'pages/page-${realPageNumber.toString().padLeft(3, '0')}.jpg';
+    final imageUrl =
+        'pages/page-${realPageNumber.toString().padLeft(3, '0')}.jpg';
 
     return Container(
       decoration: BoxDecoration(
@@ -216,7 +218,8 @@ class _QuranReaderScreenState extends State<QuranReaderScreen>
             child: CircularProgressIndicator(
               color: theme.colorScheme.primary,
               value: loadingProgress.expectedTotalBytes != null
-                  ? loadingProgress.cumulativeBytesLoaded / (loadingProgress.expectedTotalBytes ?? 1)
+                  ? loadingProgress.cumulativeBytesLoaded /
+                        (loadingProgress.expectedTotalBytes ?? 1)
                   : null,
             ),
           );
@@ -236,124 +239,137 @@ class _QuranReaderScreenState extends State<QuranReaderScreen>
     final mediaQuery = MediaQuery.of(context);
     final safePadding = mediaQuery.padding;
 
-    return Scaffold(
-      extendBody: true,
-      extendBodyBehindAppBar: true,
-      backgroundColor: widget.isDarkMode ? const Color(0xFF121212) : const Color(0xFFF5F0E8),
-      appBar: _isFullscreen
-          ? null
-          : _showControls
-              ? _buildAppBar(theme, safePadding)
-              : null,
-      drawer: QuranNavigationDrawer(
-        onPageSelected: _goToPage,
-        currentPage: _currentPage,
-      ),
-      body: Stack(
-        children: [
-          GestureDetector(
-            onTap: _toggleControls,
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final isPortrait = constraints.maxWidth <= constraints.maxHeight;
-                
-                if (_lastIsPortrait != isPortrait) {
-                  final initialIndex = isPortrait ? _currentPage - 1 : (_currentPage - 1) ~/ 2;
-                  _pageController?.dispose();
-                  _pageController = PageController(initialPage: initialIndex);
-                  _lastIsPortrait = isPortrait;
-                }
+    // Any touch restarts the auto-hide timer, so the bars don't disappear
+    // while the user is reaching for a button on them.
+    return Listener(
+      behavior: HitTestBehavior.translucent,
+      onPointerDown: (_) {
+        if (_showControls) _startHideTimer();
+      },
+      child: Scaffold(
+        extendBody: true,
+        extendBodyBehindAppBar: true,
+        backgroundColor: widget.isDarkMode
+            ? const Color(0xFF121212)
+            : const Color(0xFFF5F0E8),
+        appBar: _isFullscreen
+            ? null
+            : _showControls
+            ? _buildAppBar(theme, safePadding)
+            : null,
+        drawer: QuranNavigationDrawer(
+          onPageSelected: _goToPage,
+          currentPage: _currentPage,
+        ),
+        body: Stack(
+          children: [
+            GestureDetector(
+              onTap: _toggleControls,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final isPortrait =
+                      constraints.maxWidth <= constraints.maxHeight;
 
-                final itemCount = isPortrait ? _totalPages : (_totalPages / 2).ceil();
+                  if (_lastIsPortrait != isPortrait) {
+                    final initialIndex = isPortrait
+                        ? _currentPage - 1
+                        : (_currentPage - 1) ~/ 2;
+                    _pageController?.dispose();
+                    _pageController = PageController(initialPage: initialIndex);
+                    _lastIsPortrait = isPortrait;
+                  }
 
-                return PageView.builder(
-                  key: ValueKey('page_view_$isPortrait'),
-                  controller: _pageController,
-                  reverse: true, // RTL order
-                  itemCount: itemCount,
-                  onPageChanged: (index) {
-                    final newPage = isPortrait ? index + 1 : (index * 2) + 1;
-                    if (_currentPage != newPage) {
-                      setState(() => _currentPage = newPage);
-                      widget.prefsService.saveLastPage(newPage);
-                    }
-                  },
-                  itemBuilder: (context, index) {
-                    if (isPortrait) {
-                      // Portrait: Single page
-                      return ZoomablePage(
-                        child: Center(
-                          child: _buildImagePage(index + 1, theme),
-                        ),
-                      );
-                    } else {
-                      // Landscape: Double page (Mushaf spread)
-                      final rightPage = (index * 2) + 1;
-                      final leftPage = rightPage + 1;
-                      
-                      return ZoomablePage(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            // Left Page (higher number)
-                            if (leftPage <= _totalPages)
+                  final itemCount = isPortrait
+                      ? _totalPages
+                      : (_totalPages / 2).ceil();
+
+                  return PageView.builder(
+                    key: ValueKey('page_view_$isPortrait'),
+                    controller: _pageController,
+                    reverse: true, // RTL order
+                    itemCount: itemCount,
+                    onPageChanged: (index) {
+                      final newPage = isPortrait ? index + 1 : (index * 2) + 1;
+                      if (_currentPage != newPage) {
+                        setState(() => _currentPage = newPage);
+                        widget.prefsService.saveLastPage(newPage);
+                      }
+                    },
+                    itemBuilder: (context, index) {
+                      if (isPortrait) {
+                        // Portrait: Single page
+                        return ZoomablePage(
+                          child: Center(
+                            child: _buildImagePage(index + 1, theme),
+                          ),
+                        );
+                      } else {
+                        // Landscape: Double page (Mushaf spread)
+                        final rightPage = (index * 2) + 1;
+                        final leftPage = rightPage + 1;
+
+                        return ZoomablePage(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              // Left Page (higher number)
+                              if (leftPage <= _totalPages)
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Align(
+                                      alignment: Alignment.centerRight,
+                                      child: _buildImagePage(leftPage, theme),
+                                    ),
+                                  ),
+                                )
+                              else
+                                const Expanded(child: SizedBox()),
+
+                              // Right Page (lower number)
                               Expanded(
                                 child: Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: Align(
-                                    alignment: Alignment.centerRight,
-                                    child: _buildImagePage(leftPage, theme),
+                                    alignment: Alignment.centerLeft,
+                                    child: _buildImagePage(rightPage, theme),
                                   ),
                                 ),
-                              )
-                            else
-                              const Expanded(child: SizedBox()),
-                              
-                            // Right Page (lower number)
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: _buildImagePage(rightPage, theme),
-                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-                  },
-                );
-              },
-            ),
-          ),
-
-          // Bottom bar with iOS safe area
-          if (_showControls || _isFullscreen)
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: FadeTransition(
-                opacity: _fadeController,
-                child: _buildBottomBar(theme, safePadding),
+                            ],
+                          ),
+                        );
+                      }
+                    },
+                  );
+                },
               ),
             ),
 
-          // Floating top-right buttons (fullscreen controls + non-fullscreen extras)
-          if (_showControls)
-            Positioned(
-              top: safePadding.top + 8,
-              right: 8,
-              child: FadeTransition(
-                opacity: _fadeController,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (_isFullscreen) ...
-                      [
+            // Bottom bar with iOS safe area
+            if (_showControls || _isFullscreen)
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: FadeTransition(
+                  opacity: _fadeController,
+                  child: _buildBottomBar(theme, safePadding),
+                ),
+              ),
+
+            // Floating top-right buttons (fullscreen controls + non-fullscreen extras)
+            if (_showControls)
+              Positioned(
+                top: safePadding.top + 8,
+                right: 8,
+                child: FadeTransition(
+                  opacity: _fadeController,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (_isFullscreen) ...[
                         _buildFloatingButton(
                           icon: Icons.fullscreen_exit,
                           onTap: _toggleFullscreen,
@@ -366,29 +382,31 @@ class _QuranReaderScreenState extends State<QuranReaderScreen>
                           theme: theme,
                         ),
                       ],
-                  ],
-                ),
-              ),
-            ),
-
-          // Floating hamburger menu button (top-left) — always accessible on iOS
-          // iOS PWA blocks left-edge swipe, so this is the reliable way to open drawer
-          if (_showControls)
-            Positioned(
-              top: safePadding.top + 8,
-              left: 8,
-              child: FadeTransition(
-                opacity: _fadeController,
-                child: Builder(
-                  builder: (ctx) => _buildFloatingButton(
-                    icon: Icons.menu,
-                    onTap: () => Scaffold.of(ctx).openDrawer(),
-                    theme: theme,
+                    ],
                   ),
                 ),
               ),
-            ),
-        ],
+
+            // Floating hamburger menu button (top-left), only needed in fullscreen
+            // where there is no AppBar. Otherwise it would sit hidden underneath
+            // the AppBar, which already has its own menu button.
+            if (_showControls && _isFullscreen)
+              Positioned(
+                top: safePadding.top + 8,
+                left: 8,
+                child: FadeTransition(
+                  opacity: _fadeController,
+                  child: Builder(
+                    builder: (ctx) => _buildFloatingButton(
+                      icon: Icons.menu,
+                      onTap: () => Scaffold.of(ctx).openDrawer(),
+                      theme: theme,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -399,10 +417,7 @@ class _QuranReaderScreenState extends State<QuranReaderScreen>
         children: [
           const Text(
             'القرآن الكريم',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           Text(
             'سورة ${_getCurrentSurahName()}',
@@ -421,16 +436,12 @@ class _QuranReaderScreenState extends State<QuranReaderScreen>
           onPressed: _showGoToPageDialog,
         ),
         IconButton(
-          icon: Icon(
-            _isFullscreen ? Icons.fullscreen_exit : Icons.fullscreen,
-          ),
+          icon: Icon(_isFullscreen ? Icons.fullscreen_exit : Icons.fullscreen),
           tooltip: _isFullscreen ? 'إلغاء الشاشة الكاملة' : 'شاشة كاملة',
           onPressed: _toggleFullscreen,
         ),
         IconButton(
-          icon: Icon(
-            widget.isDarkMode ? Icons.light_mode : Icons.dark_mode,
-          ),
+          icon: Icon(widget.isDarkMode ? Icons.light_mode : Icons.dark_mode),
           tooltip: widget.isDarkMode ? 'الوضع الفاتح' : 'الوضع الداكن',
           onPressed: widget.onToggleTheme,
         ),
@@ -515,10 +526,7 @@ class _QuranReaderScreenState extends State<QuranReaderScreen>
                   ),
                 ),
               ),
-              const Text(
-                '1',
-                style: TextStyle(fontSize: 12),
-              ),
+              const Text('1', style: TextStyle(fontSize: 12)),
             ],
           ),
         ],

@@ -59,8 +59,6 @@
 
   <style>
     /* ===== iOS-Optimized Global Styles ===== */
-
-    /* Prevent iOS rubber-band bouncing and text selection */
     html, body {
       margin: 0;
       padding: 0;
@@ -68,29 +66,35 @@
       height: 100%;
       width: 100%;
       position: fixed;
-      /* Prevent iOS text selection and callouts */
       -webkit-user-select: none;
       user-select: none;
       -webkit-touch-callout: none;
-      /* Prevent iOS tap highlight */
       -webkit-tap-highlight-color: transparent;
-      /* Smooth scrolling */
-      -webkit-overflow-scrolling: touch;
-      /* Safe area support for notch/home indicator */
-      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+      overscroll-behavior: none;
+      /* Let Flutter handle every gesture itself (no native scroll/zoom). */
+      touch-action: none;
     }
 
     body {
-      background-color: #121212;
-      /* Prevent pull-to-refresh on iOS */
-      overscroll-behavior: none;
-      /* Prevent iOS context menu */
-      touch-action: manipulation;
+      /* Colour shown behind the iOS status bar / home indicator. */
+      background-color: #000000;
     }
 
-    /* Prevent iOS double-tap zoom on all elements */
-    * {
-      touch-action: manipulation;
+    /*
+      Flutter is rendered inside this element instead of the whole <body>.
+      Flutter Web does not know about the iPhone notch / status bar
+      (MediaQuery.padding is always 0 on the web), so we keep its view inside
+      the safe area with CSS. Without this the top bar (menu, search, ...)
+      ends up underneath the iOS status bar and taps on it get lost.
+    */
+    #flutter-host {
+      position: fixed;
+      top: env(safe-area-inset-top, 0px);
+      right: env(safe-area-inset-right, 0px);
+      bottom: env(safe-area-inset-bottom, 0px);
+      left: env(safe-area-inset-left, 0px);
+      overflow: hidden;
+      touch-action: none;
     }
 
     /* ===== Loading Screen ===== */
@@ -149,6 +153,9 @@
   </style>
 </head>
 <body>
+  <!-- Flutter renders into this element (see flutter_bootstrap.js) -->
+  <div id="flutter-host"></div>
+
   <!-- Beautiful loading screen while Flutter initializes -->
   <div id="loading-screen">
     <div class="title">القرآن الكريم</div>
@@ -204,10 +211,12 @@
   </script>
 
   <script>
-    // Register custom Quran service worker for offline PDF caching
+    // Register the Quran service worker (offline support).
+    // NOTE: the path must be relative - the app is served from /quran_pwa/,
+    // an absolute '/quran_sw.js' points to the domain root and returns 404.
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
-        navigator.serviceWorker.register('/quran_sw.js', { scope: '/' })
+        navigator.serviceWorker.register('quran_sw.js')
           .then(function(reg) {
             console.log('Quran SW registered with scope:', reg.scope);
           })
