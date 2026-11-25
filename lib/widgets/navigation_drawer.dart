@@ -101,7 +101,7 @@ class _QuranNavigationDrawerState extends State<QuranNavigationDrawer>
           ),
           const SizedBox(height: 4),
           Text(
-            'صفحة ${widget.currentPage} من 604',
+            'صفحة ${widget.currentPage} من ${QuranIndex.totalPages}',
             style: TextStyle(
               fontSize: 14,
               color: isDark
@@ -284,14 +284,14 @@ class _QuranNavigationDrawerState extends State<QuranNavigationDrawer>
   bool _isCurrentSurah(SurahInfo surah, int index) {
     final nextPage = index < QuranIndex.surahs.length - 1
         ? QuranIndex.surahs[index + 1].page
-        : 605;
+        : QuranIndex.totalPages + 1;
     return widget.currentPage >= surah.page && widget.currentPage < nextPage;
   }
 
   bool _isCurrentJuz(JuzInfo juz, int index) {
     final nextPage = index < QuranIndex.juzList.length - 1
         ? QuranIndex.juzList[index + 1].page
-        : 605;
+        : QuranIndex.totalPages + 1;
     return widget.currentPage >= juz.page && widget.currentPage < nextPage;
   }
 }
