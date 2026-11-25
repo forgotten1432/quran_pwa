@@ -35,8 +35,16 @@ if (!window._flutter) {
 }
 _flutter.buildConfig = {"engineRevision":"42d3d75a56efe1a2e9902f52dc8006099c45d937","builds":[{"compileTarget":"dart2js","renderer":"canvaskit","mainJsPath":"main.dart.js"},{}]};
 
+
 _flutter.loader.load({
-  serviceWorkerSettings: {
-    serviceWorkerVersion: "927894672" /* Flutter's service worker is deprecated and will be removed in a future Flutter release. */
-  }
+  config: {
+    // Render inside #flutter-host (kept inside the iOS safe area by CSS in
+    // index.html) instead of taking over the whole <body>.
+    hostElement: document.getElementById('flutter-host'),
+    // Load the CanvasKit renderer from this site instead of www.gstatic.com,
+    // so the app also starts offline and without third-party requests.
+    canvasKitBaseUrl: 'canvaskit/',
+  },
+  // Flutter's own service worker is deprecated (and only unregisters itself);
+  // offline caching is handled by quran_sw.js instead.
 });
