@@ -70,7 +70,7 @@ class QuranReaderScreen extends StatefulWidget {
 class _QuranReaderScreenState extends State<QuranReaderScreen>
     with TickerProviderStateMixin {
   int _currentPage = 1;
-  int _totalPages = 608;
+  final int _totalPages = QuranIndex.totalPages;
   bool _isFullscreen = false;
   bool _showControls = true;
   Timer? _hideTimer;
@@ -188,7 +188,7 @@ class _QuranReaderScreenState extends State<QuranReaderScreen>
 
   Widget _buildImagePage(int virtualPageNumber, ThemeData theme) {
     // Bounds check
-    if (virtualPageNumber < 1 || virtualPageNumber > 608) {
+    if (virtualPageNumber < 1 || virtualPageNumber > _totalPages) {
       return const SizedBox();
     }
 
@@ -225,8 +225,19 @@ class _QuranReaderScreenState extends State<QuranReaderScreen>
           );
         },
         errorBuilder: (context, error, stackTrace) {
+          // Shown when a page image is missing or could not be loaded.
           return const Center(
-            child: Icon(Icons.error_outline, size: 40, color: Colors.grey),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.error_outline, size: 40, color: Colors.grey),
+                SizedBox(height: 8),
+                Text(
+                  'الصفحة غير متوفرة',
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ],
+            ),
           );
         },
       ),
