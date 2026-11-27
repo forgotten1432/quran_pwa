@@ -6,7 +6,7 @@
 // - Mushaf page images (pages/*.jpg) and icons: cache-first, they never change.
 
 // Bump when page images are renamed/replaced so stale cached pages are dropped.
-const VERSION = 'v3';
+const VERSION = 'v4';
 const APP_CACHE = `quran-app-${VERSION}`;
 const PAGES_CACHE = `quran-pages-${VERSION}`;
 

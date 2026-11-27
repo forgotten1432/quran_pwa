@@ -212,6 +212,7 @@ class _QuranReaderScreenState extends State<QuranReaderScreen>
       child: Image.network(
         imageUrl,
         fit: BoxFit.contain,
+        filterQuality: FilterQuality.high,
         loadingBuilder: (context, child, loadingProgress) {
           if (loadingProgress == null) return child;
           return Center(
